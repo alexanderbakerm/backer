@@ -47,6 +47,8 @@ postgresql://user:password@host:5432/database?sslmode=require
 
 4. Click **Deploy**
 
+> **First deploy failed at `prisma migrate deploy`?** If the Vercel project has **no** (or only local) `DATABASE_URL`, migrations try to reach `localhost` and the build exits with **P1001**. Fix: add a real Postgres URL (e.g. [Neon](https://neon.tech)) under **Project → Settings → Environment Variables** for **Production** (and **Preview** if you use it), then **Redeploy**. Minimum vars for a working app: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `TOKENROUTER_API_KEY`. See the tables below for the full list.
+
 That's it! Your app is live.
 
 ---

@@ -65,11 +65,17 @@ const bundleAnalyzerConfig =
 
 const vercelOrCI = !!(process.env.VERCEL === "1" || process.env.CI);
 
+/** Only wrap Sentry when release + sourcemap upload can succeed (avoids prod build noise). */
+const sentryConfigured =
+	!!process.env.SENTRY_AUTH_TOKEN &&
+	!!process.env.SENTRY_ORG &&
+	!!process.env.SENTRY_PROJECT;
+
 const withMDX = createMDX();
 
 export default withContentCollections(
 	withMDX(
-		process.env.VERCEL_ENV === "production"
+		process.env.VERCEL_ENV === "production" && sentryConfigured
 			? withSentryConfig(bundleAnalyzerConfig, {
 					org: process.env.SENTRY_ORG,
 					project: process.env.SENTRY_PROJECT,
