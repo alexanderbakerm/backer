@@ -46,7 +46,6 @@ Open [http://localhost:3000](http://localhost:3000)
 | [README_DEPLOYMENT.md](./README_DEPLOYMENT.md)       | Vercel deployment guide                       |
 | [AGENTS.md](./AGENTS.md)                             | AI agent guidelines (Cursor, Claude, Copilot) |
 | [.env.example](./.env.example)                       | All environment variables                     |
-| [LICENSE](./LICENSE)                                 | Achromatic License                            |
 
 ## Commands
 
@@ -87,7 +86,3 @@ config/              # App, auth, billing configuration
 lib/                 # Core libraries (auth, billing, db, email)
 trpc/                # tRPC API routers
 ```
-
-## License
-
-[Achromatic License](./LICENSE)
