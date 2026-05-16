@@ -1,88 +1,18 @@
-# SaaS Template
+What Backer is for
+Backer sits between founders who are raising and investors who are sourcing. It’s built as dual-sided deal intelligence: one side helps investment teams spot and qualify founders from live signals (social, code, news, firmographic data—the product narrative is “always-on scouting” instead of dead CSVs). The other side helps founders map funds, theses, and warm paths so outreach is targeted, not spray-and-pray. Everything is organized in teams (organizations) with billing and optional AI credits when you meter usage.
 
-A production-ready SaaS boilerplate with authentication, billing, organizations and more.
+Where technology shows up (without turning into a manual)
+Data & backend
+The app expects a PostgreSQL database. In practice many teams use Neon, Supabase Postgres, or Railway—anything that gives you a DATABASE_URL. The app talks to that DB through Prisma (schema, migrations, typed access). Supabase is often a good fit if you want hosted Postgres and later add auth-adjacent or real-time features from their platform; this codebase’s primary auth is Better Auth, but the database can still live on Supabase.
 
-## Tech Stack
+LLMs & chat
+The in-app AI assistant (org-scoped chat) uses large language models for streaming replies, thesis-style reasoning, and (in the product story) drafting and summarization. Models are reached through TokenRouter—an OpenAI-compatible gateway—so you can route models, track usage, and align with Stripe-billed AI credits without hard-coding a single vendor.
 
-| Category          | Technologies                               |
-| ----------------- | ------------------------------------------ |
-| **Framework**     | Next.js 16, React 19, TypeScript           |
-| **Styling**       | Tailwind CSS 4, Radix UI, Lucide Icons     |
-| **Data**          | tRPC, React Query, Prisma ORM, PostgreSQL  |
-| **Auth**          | Better Auth (email, Google OAuth, 2FA)     |
-| **Billing**       | Stripe (subscriptions, per-seat, one-time) |
-| **Email**         | Resend, React Email                        |
-| **Storage**       | S3-compatible (AWS S3 / Cloudflare R2)     |
-| **Observability** | Sentry, Vercel Analytics                   |
+Scraping / enrichment (product story)
+The Shadow Partner flows describe live enrichment (e.g. GitHub, X, professional networks). In code, Bright Data–style jobs are outlined as stubs until you plug in real Web Scraper / dataset / browser APIs. That’s the bridge between “we watch the live web” and your actual data provider.
 
-## Quick Start
+Money & email
+Stripe handles subscriptions, seat-based plans, and one-off purchases (including AI credit packs). Resend sends transactional email (verification, resets, etc.).
 
-```bash
-npm install
-cp .env.example .env
-# Edit .env: set DATABASE_URL and BETTER_AUTH_SECRET
-npm run db:migrate
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
-**Full setup guide:** [README_QUICKSTART.md](./README_QUICKSTART.md)
-
-## Documentation
-
-| Document                                             | Description                                   |
-| ---------------------------------------------------- | --------------------------------------------- |
-| [README_QUICKSTART.md](./README_QUICKSTART.md)       | Step-by-step setup guide                      |
-| [README_DATABASE.md](./README_DATABASE.md)           | Prisma ORM, schema, migrations                |
-| [README_AUTH.md](./README_AUTH.md)                   | Authentication, roles, sessions, 2FA          |
-| [README_TRPC.md](./README_TRPC.md)                   | tRPC API layer and procedures                 |
-| [README_BILLING.md](./README_BILLING.md)             | Stripe billing, subscriptions, webhooks       |
-| [README_EMAIL.md](./README_EMAIL.md)                 | Resend email system and templates             |
-| [README_STORAGE.md](./README_STORAGE.md)             | S3-compatible file storage                    |
-| [README_CONTENT.md](./README_CONTENT.md)             | Blog, docs and marketing pages                |
-| [README_AI.md](./README_AI.md)                       | AI chatbot system                             |
-| [README_OBSERVABILITY.md](./README_OBSERVABILITY.md) | Sentry, logging, analytics                    |
-| [README_DEPLOYMENT.md](./README_DEPLOYMENT.md)       | Vercel deployment guide                       |
-| [AGENTS.md](./AGENTS.md)                             | AI agent guidelines (Cursor, Claude, Copilot) |
-| [.env.example](./.env.example)                       | All environment variables                     |
-
-## Commands
-
-| Command                 | Description                     |
-| ----------------------- | ------------------------------- |
-| `npm run dev`           | Start development server        |
-| `npm run build`         | Build for production            |
-| `npm run db:migrate`    | Run database migrations         |
-| `npm run db:studio`     | Open Prisma Studio (DB GUI)     |
-| `npm run docker:up`     | Start PostgreSQL                |
-| `npm run stripe:listen` | Forward Stripe webhooks locally |
-| `npm run deps:check`    | Check for dependency updates    |
-| `npm run deps:update`   | Update package.json versions    |
-
-## Configuration
-
-### AI Credits
-
-To enable AI credits, create three products in Stripe (Starter $9.99, Basic $39.99, Pro $149.99) and add their Price IDs to `.env`:
-
-```bash
-NEXT_PUBLIC_STRIPE_PRICE_CREDITS_STARTER="price_..."
-NEXT_PUBLIC_STRIPE_PRICE_CREDITS_BASIC="price_..."
-NEXT_PUBLIC_STRIPE_PRICE_CREDITS_PRO="price_..."
-```
-
-For full setup details, see [README_BILLING.md](./README_BILLING.md#ai-credits-system).
-
-## Project Structure
-
-```
-app/
-├── (marketing)/     # Public pages (landing, blog, docs)
-├── (saas)/          # Protected app (dashboard, settings)
-└── api/             # API routes (auth, webhooks, tRPC)
-components/          # React components
-config/              # App, auth, billing configuration
-lib/                 # Core libraries (auth, billing, db, email)
-trpc/                # tRPC API routers
-```
+Hosting
+Vercel (or similar) runs the Next.js app: marketing pages, dashboard, API routes (auth, tRPC, webhooks, streaming chat). Sentry and Vercel Analytics are there when you turn them on for errors and traffic.
