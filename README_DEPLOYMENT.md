@@ -148,11 +148,14 @@ TURNSTILE_SECRET_KEY="0x4xxxxx"
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="0x4xxxxx"
 ```
 
-#### AI Chatbot
+#### AI Chatbot (TokenRouter)
 
 ```bash
-OPENAI_API_KEY="sk-xxxxx"
+TOKENROUTER_API_KEY="your-tokenrouter-key"
+# TOKENROUTER_BASE_URL="https://api.tokenrouter.com/v1"
 ```
+
+See [README_AI.md](./README_AI.md) for Shadow Partner / Bright Data integration outlines.
 
 ---
 

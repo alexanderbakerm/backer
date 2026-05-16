@@ -4,13 +4,28 @@ This template includes a built-in AI chatbot with a ChatGPT-like interface. User
 
 ## Quick Setup
 
-1. Add your OpenAI API key to `.env`:
+1. Add **TokenRouter** credentials to `.env` (the chatbot calls TokenRouter’s **OpenAI-compatible** HTTP API):
 
 ```env
-OPENAI_API_KEY=sk-...
+TOKENROUTER_API_KEY=your-tokenrouter-key
+# Optional — defaults in code to https://api.tokenrouter.com/v1
+# TOKENROUTER_BASE_URL=https://api.tokenrouter.com/v1
 ```
 
-2. That's it! The AI chat is available at `/dashboard/ai`.
+2. Ensure organization **AI credits** / billing is configured if you enforce credit checks (see [README_BILLING.md](./README_BILLING.md)).
+
+3. Open the assistant at **`/dashboard/ai`**.
+
+### Bright Data (Shadow Partner)
+
+Lead-enrichment and scraper **orchestration** references **Bright Data** in the product (e.g. GitHub / X discovery lanes). The wiring is **intentionally stubbed** until you connect your Bright Data account:
+
+| Location | Role |
+| -------- | ---- |
+| [`lib/shadow-partner/service.ts`](./lib/shadow-partner/service.ts) | Replace `triggerBrightDataGithubScraper`, `triggerBrightDataXTrendsScraper`, etc. with real [Bright Data](https://brightdata.com/) API calls (Web Scraper API, datasets, or browser-based products). |
+| [`app/api/shadow-partner/route.ts`](./app/api/shadow-partner/route.ts) | API route that invokes those triggers; extend as you add real jobs. |
+
+Add secrets (e.g. `BRIGHT_DATA_API_TOKEN`, zone IDs) to `.env` **after** you extend `lib/env.ts` and the service module to read them. Example placeholders live in [`.env.example`](./.env.example).
 
 ## Architecture Overview
 
@@ -28,9 +43,10 @@ tRPC doesn't support streaming responses. The Vercel AI SDK's `streamText()` ret
 
 ## Tech Stack
 
-- **[Vercel AI SDK](https://sdk.vercel.ai/)** - Core AI functionality
-- **[OpenAI](https://platform.openai.com/)** - LLM provider (gpt-4o-mini)
-- **[Streamdown](https://github.com/vercel/ai/tree/main/packages/streamdown)** - Markdown streaming renderer
+- **[Vercel AI SDK](https://sdk.vercel.ai/)** — streaming `streamText`, tools, and `useChat`
+- **[TokenRouter](https://tokenrouter.com/)** — LLM gateway exposed through an **OpenAI-compatible** base URL; the app uses `@ai-sdk/openai` `createOpenAI({ baseURL, apiKey })` in [`app/api/ai/chat/route.ts`](./app/api/ai/chat/route.ts)
+- **Bright Data** — documented integration points for Shadow Partner scrapers (stubs until you add API calls); see [Bright Data](https://brightdata.com/) product docs for Web Scraper / dataset APIs
+- **[Streamdown](https://github.com/vercel/ai/tree/main/packages/streamdown)** — Markdown streaming renderer
 
 ## Database Schema
 
@@ -68,7 +84,7 @@ User Input → updateChat (tRPC) → sendMessage (useChat) → API Route
 ### 2. AI Streams Response
 
 ```
-API Route → streamText (OpenAI) → Token chunks → useChat → UI Update
+API Route → streamText (TokenRouter via OpenAI-compatible client) → Token chunks → useChat → UI Update
 ```
 
 ### 3. Save on Complete
@@ -148,32 +164,34 @@ const { messages, sendMessage, status } = useChat({
 
 ### Change the Model
 
-Edit `app/api/ai/chat/route.ts`:
+Models are driven by **`config/billing.config.ts`** (`chatModels`, `DEFAULT_CHAT_MODEL`) and validated in [`app/api/ai/chat/route.ts`](./app/api/ai/chat/route.ts). The runtime client is OpenAI-compatible **TokenRouter**:
 
 ```typescript
-// Use GPT-4o for better quality
-const result = streamText({
-  model: openai("gpt-4o"),
-  messages,
+const tokenRouter = createOpenAI({
+  apiKey: env.TOKENROUTER_API_KEY,
+  baseURL: env.TOKENROUTER_BASE_URL,
 });
 
-// Or GPT-4 Turbo
 const result = streamText({
-  model: openai("gpt-4-turbo"),
+  model: tokenRouter(selectedModel), // e.g. id must match chatModels / TokenRouter
   messages,
 });
 ```
+
+Use model IDs your TokenRouter workspace exposes (often named like OpenAI models, but confirm in their dashboard).
 
 ### Add a System Prompt
 
 ```typescript
 const result = streamText({
-  model: openai("gpt-4o-mini"),
+  model: tokenRouter(selectedModel),
   system: `You are a helpful CRM assistant for ${organizationName}. 
            Help users manage their leads, contacts and deals.`,
   messages,
 });
 ```
+
+(`tokenRouter` is the same `createOpenAI` client configured for TokenRouter — see the route file.)
 
 ### Switch to Claude (Anthropic)
 
@@ -200,6 +218,8 @@ const result = streamText({
 });
 ```
 
+The default app uses **TokenRouter** only; switching to Anthropic means extending `lib/env.ts`, injecting `anthropic(...)`, and aligning billing / model IDs with your deployment.
+
 ### Add Tool/Function Calling
 
 ```typescript
@@ -207,7 +227,7 @@ import { z } from "zod/v4";
 import { prisma } from "@/lib/db";
 
 const result = streamText({
-  model: openai("gpt-4o-mini"),
+  model: tokenRouter(selectedModel),
   messages,
   tools: {
     searchLeads: {
@@ -344,8 +364,7 @@ Chat input form with submit handling.
 
 ## Cost Considerations
 
-- **gpt-4o-mini**: ~$0.15/1M input tokens, ~$0.60/1M output tokens
-- **gpt-4o**: ~$2.50/1M input tokens, ~$10/1M output tokens
+- Upstream cost and token pricing depend on **TokenRouter** routing and which base models you enable there — check their dashboard and your selected model IDs (see `config/billing.config.ts`).
 
 Consider implementing:
 
@@ -365,8 +384,8 @@ Chat may have been deleted or user switched organizations.
 
 ### Slow Responses
 
-- Check OpenAI API status
-- Consider using a faster model
+- Check TokenRouter / upstream model availability
+- Consider using a faster model id in TokenRouter
 - Reduce `maxDuration` if needed
 
 ### Messages Not Saving

@@ -194,14 +194,18 @@ NEXT_PUBLIC_STRIPE_PRICE_LIFETIME="price_xxxxx"
 npm run stripe:listen
 ```
 
-### AI Chat
+### AI Chat (TokenRouter)
 
-Enables: Organization chatbot feature
+Enables: Organization chatbot feature (`/dashboard/ai`). The streaming route uses TokenRouter’s **OpenAI-compatible** API.
 
 ```bash
-# Get key from https://platform.openai.com/api-keys
-OPENAI_API_KEY="sk-xxxxx"
+# Get credentials from your TokenRouter account
+TOKENROUTER_API_KEY="your-tokenrouter-key"
+# Optional (default: https://api.tokenrouter.com/v1)
+# TOKENROUTER_BASE_URL="https://api.tokenrouter.com/v1"
 ```
+
+See [README_AI.md](./README_AI.md) for architecture and Bright Data (Shadow Partner) notes.
 
 ### File Storage (Cloudflare R2)
 
