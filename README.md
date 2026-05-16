@@ -16,3 +16,13 @@ Stripe handles subscriptions, seat-based plans, and one-off purchases (including
 
 Hosting
 Vercel (or similar) runs the Next.js app: marketing pages, dashboard, API routes (auth, tRPC, webhooks, streaming chat). Sentry and Vercel Analytics are there when you turn them on for errors and traffic.
+
+What Backer solves
+Founders waste time blasting investors who are a bad fit, or they never find the right funds at all.
+Investors miss deals buried in noise, or chase the same companies twice because nothing remembers what the team already did.
+
+Backer is built to fix that: help both sides find the right counterparty with better signals and smarter outreach, instead of random cold email and endless manual research.
+
+For investors: surface the right founders from real activity, keep context so you don’t duplicate bad outreach, and use AI to summarize and draft—you still decide what goes out.
+For founders: map who actually matches your stage and story so you reach fewer people with higher quality, not bigger blast lists.
+In one line: Backer reduces missed matches, wasted outreach, and repeated mistakes in how startups and capital providers find each other.
